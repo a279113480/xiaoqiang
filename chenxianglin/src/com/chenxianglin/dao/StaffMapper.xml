@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.chenxianglin.dao.StaffMapper">
+		<!-- 映射结果集 -->
+	<resultMap type="com.chenxianglin.pojo.Staff" id="Staff-result">
+		<!-- 其他字段 -->
+		<result property="ename" column="ENAME"/>
+		<result property="job" column="JOB"/>
+		<result property="dname" column="DNAME"/>
+		<result property="loc" column="LOC"/>
+		<result property="sal" column="SAL"/>
+	</resultMap>
+	
+		<!-- 分页头部 -->
+	<sql id="pagerSQLHeader">
+			select e.ename,e.job,e.dname,e.loc,e.sal from(
+			select row_number()  over(
+	</sql>
+	<!-- 分页的排序 -->
+	<sql id="orderBy">
+		order by
+		<if test="sort !=null  and order !=null">
+			<choose>
+				<when test="sort=='ename'">ENAME</when>
+				<when test="sort=='job'">JOB</when>
+				<when test="sort=='dname'">DNAME</when>
+				<when test="sort=='loc'">LOC</when>
+				<when test="sort=='sal'">SAL</when>
+				<otherwise>SAL</otherwise>
+			</choose>
+			<if test="order=='asc'">ASC</if>
+			<if test="order=='desc'">DESC</if>	
+		</if>
+	</sql>
+	
+	
+	<!--【CDATA】 把内容转化为纯字符串 -->
+	<!-- 分页SQL尾部 -->
+	<sql id="PagerSQLFoot">
+		<![CDATA[ where rn>#{pageno} and rn<=#{pagesize} ]]>
+	</sql>
+	
+	<!-- mybatis-oracle 分页 查询-->
+	<select id="findPager"  resultMap="Staff-result">
+		<include refid="pagerSQLHeader"></include>
+		<include refid="orderBy"></include>
+		) rn,c.* from  (select e.ename,e.job,d.dname,d.loc,e.sal from emp e ,dept d where e.deptno = d.deptno) c )e
+		<include refid="PagerSQLFoot"></include>
+	</select>
+	
+	
+	<!-- - 总记录查询-->
+	<select id="findTotal"  resultType="int">
+		select count(*) from 
+		(
+		Select e.ename,e.job,e.sal,d.dname,d.loc from emp e
+			Left outer join  dept d 
+			on e.deptno= d.deptno  
+		)			
+	</select>
+</mapper>
